@@ -2,13 +2,13 @@
 * qry
 * a tiny chained api
 * v0.1a
-* Nico Pr 2015
+* Nico Pr 2016
 * http://www.nicopr.fr/qry
 */
 
 var $;
+var odata = {};
 var crap;
-var rnotwhite = (/\S+/g);
 (function() {
 	"use strict";
 	console.log("init qry");
@@ -29,7 +29,7 @@ var rnotwhite = (/\S+/g);
 		if(typeof selector == "string") {
 			if(selector.charAt(0) == "#") nodes = [parent.querySelector(selector)]; // .substring(1) for IE
 			else if(selector.charAt(0) == ".") {
-				var preg = /([a-z.#]+):?(\d+)?/i;
+				var preg = /([a-z_\-.#]+):?(\d+)?/i;
 				var processed = preg.exec(selector);
 				nodes = parent.querySelectorAll(processed[1]); // .substring(1) for IE
 				if(nodes.length && typeof processed[2] !== "undefined") nodes = [nodes[processed[2]]];
@@ -55,7 +55,7 @@ var rnotwhite = (/\S+/g);
 	
     $.fn = tQ.prototype = {
 		chill: function() {
-			return 0; // the amount of fucks i give
+			return 0; // amounts of fucks to give
 		},
 		hide: function() {
             for(var i = 0, l = this.length; i < l; i++) {
@@ -98,10 +98,30 @@ var rnotwhite = (/\S+/g);
 			}
 			return this;
 		},
-		data: function(field, value) {
+		/*data: function(field, value) {
 			field = "data-" + field;
 			if(typeof value === "undefined") return this[0].getAttribute(field);
 			for(var i = 0, l = this.length; i < l; i++) this[i].setAttribute(field, value);
+			return this;
+		},*/
+		data: function(field, value) {
+			if(typeof value === "undefined" && this[0].getAttribute("data-qry")) {
+				//console.log("get data " + this[0].getAttribute("data-qry"));
+				return odata[this[0].getAttribute("data-qry")][field];
+			}
+			for(var i = 0, l = this.length; i < l; i++) {
+				if(this[i].getAttribute("data-qry")) {
+					//console.log("set data");
+					odata[this[i].getAttribute("data-qry")][field] = value;
+				}
+				else {
+					//console.log("allocate data");
+					this[i].setAttribute("data-qry", $.uniq());
+					odata[this[i].getAttribute("data-qry")] = {};
+					odata[this[i].getAttribute("data-qry")][field] = value;
+				}
+				this[i].setAttribute(field, value);
+			}
 			return this;
 		},
 		parent: function() {
@@ -137,7 +157,7 @@ var rnotwhite = (/\S+/g);
 			for(var i = 0, l = this.length; i < l; i++) this[i].value = value;
 			return this;
 		},
-		empty: function() {
+		empty: function() { // .html(""); ??
 			for(var i = 0, l = this.length; i < l; i++) while(this[i].firstChild) this[i].removeChild(this[i].firstChild); // innerHTML = ""; // ??
 			return this;
 		},
@@ -205,6 +225,7 @@ var rnotwhite = (/\S+/g);
 		},
 		get: function(selector) {
 			if(selector % 1 == 0) {
+				console.log("length = " + this.length);
 				for(var i = this.length - 1; i >= 0; i--) {
 					if(i != selector) {
 						delete this[i];
@@ -213,24 +234,31 @@ var rnotwhite = (/\S+/g);
 				}
 				return this;
 			}
+			else if(selector == "..") return $(this.parent());
+			else if(selector.charAt(0) == "<" && selector.charAt(selector.length - 1) == ">") {
+				var parsed = /<(\w+)\/>/.exec(selector);
+				if(parsed) return $(document.createElement(parsed[1])).appendTo(this);
+				else throw("invalid markup");
+			}
 			else return new tQ(selector, this[0]);
 		}
     };
 	
 	$.ajax = function(request) {
 		/**
-		*
 		*	request structure
 		*	url: script url
 		*	method: POST / GET
 		*	data: data to be sent
 		*	contentType: send content-type header (false > don't send)
 		* 	processData: false > send raw data 
-		*	ready: function called when request is ready to launch
+		*	ready: function called when request is ready to lift off
 		*	progress : function called on upload progress
 		*	success: function(data) called on success
 		*	error: function called if anything fails
-		*
+		*	username: http auth username
+		*	password: http auth password
+		*	params: array of whatever added to success() arguments
 		*/
 		var xhr = null;
 		if(window.XMLHttpRequest || window.ActiveXObject) {
@@ -253,16 +281,16 @@ var rnotwhite = (/\S+/g);
 		};
 		xhr.onreadystatechange = function() {
 			if(xhr.readyState === 1 && (xhr.status === 200 || xhr.status === 0)) request["ready"].call();
-			else if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 0)) request["success"].apply(this, [$.json(xhr.responseText)]);
-			else if(xhr.status !== 200 && xhr.status !== 0) request["error"].call();
+			else if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 0)) request["success"].apply(this, [$.json(xhr.responseText)].concat(request.params));
+			else if(xhr.status !== 200 && xhr.status !== 0) request["error"].apply(this, [xhr.statusText]);
 		};
-		xhr.open(request.method, request.url, true);
+		xhr.open(request.method, request.url, true, request.user, request.password);
 		if(request.method == "POST" && (typeof request.contentType == "undefined" || request.contentType != false)) {
 			xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 		}
 		if(typeof request.processData == "undefined" || request.processData != false) {
 			var out = new Array();
-			for(key in request.data) out.push(key + "=" + encodeURIComponent(request.data[key]));
+			for(var key in request.data) out.push(key + "=" + encodeURIComponent(request.data[key]));
 			xhr.send(out.join("&"));
 		}
 		else xhr.send(request.data);
@@ -293,7 +321,7 @@ var rnotwhite = (/\S+/g);
 	};
 	
 	$.uniq = function() {
-		return (new Date().getTime() + Math.floor((Math.random() * 10000) + 1)).toString(16);
+		return (new Date().getTime() + Math.floor((Math.random() * 10000) + 1)).toString(36);
 	};
 	
 	$.isin = function(needle, haystack, start) {

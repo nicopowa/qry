@@ -1,7 +1,7 @@
 qry
 tiny js chaining api
 v0.1a
-Nico Pr 2015
+Nico Pr 2016
 http://www.nicopr.fr/qry
 
 qry is a (very) basic jQuery-like library
