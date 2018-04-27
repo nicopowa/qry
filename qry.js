@@ -24,11 +24,11 @@ var crap;
 	* @param selector: "<element/>" / html element / nodelist / array of elements / object / #id / .class / qry object / "body"
 	* @return qry object
 	*/
-    $ = function(selector) {
-        return new qry(selector, document);
-    };
+	$ = function(selector) {
+		return new qry(selector, document);
+	};
 	
-    var qry = function(selector, parent) {
+	var qry = function(selector, parent) {
 		var nodes, i, l;
 		if(typeof selector == "string") {
 			if(selector.charAt(0) == "#") nodes = [parent.querySelector(selector)]; // .substring(1) for IE
@@ -54,12 +54,12 @@ var crap;
 			console.log("selector fail");
 			console.log(selector);
 		}
-        for(i = 0, l = nodes.length; i < l; i++) this[i] = nodes[i]; // if(nodes[i].nodeName !== "#text") // ???????
-        this.length = nodes.length;
-        return this;
-    };
+		for(i = 0, l = nodes.length; i < l; i++) this[i] = nodes[i]; // if(nodes[i].nodeName !== "#text") // ???????
+		this.length = nodes.length;
+		return this;
+	};
 	
-    $.fn = qry.prototype = {
+	$.fn = qry.prototype = {
 		/*
 		* TODO
 		*/
@@ -71,17 +71,17 @@ var crap;
 		* @return qry object
 		*/
 		hide: function() {
-            for(var i = 0, l = this.length; i < l; i++) this[i].style.visibility = "hidden";
-            return this;
-        },
+			for(var i = 0, l = this.length; i < l; i++) this[i].style.visibility = "hidden";
+			return this;
+		},
 		/*
 		* @method show: show selected elements
 		* @return qry object
 		*/
 		show: function() {
-            for(var i = 0, l = this.length; i < l; i++) this[i].style.visibility = "";
-            return this;
-        },
+			for(var i = 0, l = this.length; i < l; i++) this[i].style.visibility = "";
+			return this;
+		},
 		/*
 		* @method width: get first element width
 		* @return number
@@ -273,10 +273,10 @@ var crap;
 		* @method remove: remove all child elements from DOM
 		* @return qry object
 		*/
-        remove: function() {
-            for(var i = 0, l = this.length; i < l; i++) this[i].parentNode.removeChild(this[i]);
-            return this;
-        },
+		remove: function() {
+			for(var i = 0, l = this.length; i < l; i++) this[i].parentNode.removeChild(this[i]);
+			return this;
+		},
 		/*
 		* @method children: get a qry object from children elements
 		* @return qry object
@@ -488,7 +488,7 @@ var crap;
 			}
 			else return new qry(selector, this[0]);
 		}
-    };
+	};
 	
 	/*
 	* @method die: empty function
@@ -626,9 +626,9 @@ var crap;
 	* @return object or string if fail
 	*/
 	$.isin = function(needle, haystack, start) {
-         for (var i = (start || 0), j = haystack.length; i < j; i++) if(haystack[i] === needle) return i;
-         return -1;
-    };
+		for (var i = (start || 0), j = haystack.length; i < j; i++) if(haystack[i] === needle) return i;
+		return -1;
+	};
 	
 	/*
 	* @method isnull: check var null or not
