@@ -1,7 +1,7 @@
 /**
 * qry default plugin prototype
 * v0.1a
-* Nico Pr 2015
+* Nico Pr 2018
 * http://www.nicopr.fr/qry
 */
 
